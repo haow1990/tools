@@ -44,6 +44,7 @@ def parseFile(infile):
     else:
       tasks[taskid].append(time)
     
+  totalIterations = 0
   newtasks = {} # taskid -> ([start time], [end time])
   totalDuration = int((endtime - starttime).total_seconds())
   for (taskid, timelist) in tasks.items():
@@ -56,8 +57,9 @@ def parseFile(infile):
     if len(ends) + 1 == len(starts):
       ends.append(totalDuration)
     newtasks[taskid] = (starts, ends)
+    totalIterations = max(totalIterations, len(starts))
 
-  return (starttime, newtasks)
+  return (starttime, newtasks, totalIterations)
 
 def createChart(title):
   style = Style(colors=['#00731F', '#00731F'])
@@ -83,9 +85,12 @@ def draw(path, iteration, tasks, starttime):
 
 def main():
   path = sys.argv[1]
-  (starttime, tasks) = parseFile(sys.stdin)
-  for i in xrange(2, len(sys.argv)):
-    iteration = int(sys.argv[i])
+  (starttime, tasks, totalIterations) = parseFile(sys.stdin)
+  if len(sys.argv) >= 3:
+    iterations = [int(sys.argv[i]) for i in xrange(2, len(sys.argv))]
+  else:
+    iterations = range(totalIterations)
+  for iteration in iterations:
     print 'Generating Iteration', iteration
     draw('%s-%s.svg' % (path, iteration), iteration, tasks, starttime)
 
